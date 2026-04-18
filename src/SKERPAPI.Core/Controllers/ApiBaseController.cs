@@ -13,13 +13,14 @@ namespace SKERPAPI.Core.Controllers
     /// 所有模組的 Controller 應繼承此類別。
     /// </summary>
     /// <remarks>
-    /// 已套用的全域 Attribute：
-    ///   - ApiKey：API 金鑰驗證
+    /// 已套用的 Attribute：
     ///   - RateLimit：每分鐘 100 次限速
     ///   - AuditLog：操作審計日誌
     ///   - SecurityHeaders：安全回應標頭
+    ///
+    /// 認證由 OWIN Pipeline Middleware 處理 (ApiKeyAuth / JwtBearer / mTLS)。
+    /// 授權可在 Controller/Action 上加入 [PermissionAuthorize("xxx")] Attribute。
     /// </remarks>
-    [Filters.ApiKey]
     [Filters.RateLimit(MaxRequestsPerMinute = 100)]
     [Filters.AuditLog]
     [Filters.SecurityHeaders]

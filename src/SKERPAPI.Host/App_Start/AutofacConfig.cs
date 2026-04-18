@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
+using SKERPAPI.Core.Security.Authorization;
 
 namespace SKERPAPI.Host
 {
@@ -47,7 +48,18 @@ namespace SKERPAPI.Host
                 }
             }
 
-            // 4. 建立容器並設為 Web API 的 DependencyResolver
+            // 4. 註冊授權 Provider (IAuthorizationProvider)
+            // ── 開發環境：使用 ConfigBasedAuthProvider（全部放行）──
+            builder.RegisterType<ConfigBasedAuthProvider>()
+                .As<IAuthorizationProvider>()
+                .SingleInstance();
+
+            // ── 正式環境：切換為 DbRbacAuthProvider ──
+            // builder.RegisterType<DbRbacAuthProvider>()
+            //     .As<IAuthorizationProvider>()
+            //     .SingleInstance();
+
+            // 5. 建立容器並設為 Web API 的 DependencyResolver
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
@@ -56,3 +68,4 @@ namespace SKERPAPI.Host
         }
     }
 }
+

@@ -9,17 +9,14 @@ using System.Web.Http.Filters;
 namespace SKERPAPI.Core.Filters
 {
     /// <summary>
-    /// API 金鑰驗證過濾器。
-    /// 從 Request Header "X-Api-Key" 讀取金鑰並驗證。
+    /// [已過時] API 金鑰驗證過濾器。
+    /// 認證已遷移至 OWIN Pipeline 的 ApiKeyAuthMiddleware。
+    /// 此類別保留供向後相容，新程式碼請勿使用。
     /// </summary>
     /// <remarks>
-    /// 使用方式：套用在 Controller 或 Action 上
-    ///   [ApiKey]
-    ///   public class MyController
-    /// 
-    /// 金鑰設定在 Web.config 的 appSettings：
-    ///   &lt;add key="ApiKey" value="your-secret-key" /&gt;
+    /// 已被 SKERPAPI.Core.Security.Authentication.ApiKeyAuthMiddleware 取代。
     /// </remarks>
+    [System.Obsolete("使用 OWIN Pipeline 的 ApiKeyAuthMiddleware 取代。此 Filter 將在未來版本移除。")]
     public class ApiKeyAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(HttpActionContext actionContext)
