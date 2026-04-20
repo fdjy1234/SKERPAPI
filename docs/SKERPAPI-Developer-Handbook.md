@@ -1,6 +1,6 @@
 # SKERPAPI 開發手冊 (Developer Handbook)
 
-> **版本**: 2.0.0 | **最後更新**: 2026-04-18 | **適用對象**: 程式設計師
+> **版本**: 2.1.0 | **最後更新**: 2026-04-20 | **適用對象**: 程式設計師
 
 ---
 
@@ -16,10 +16,11 @@ SKERPAPI 是一個基於 **ASP.NET Web API 2 (.NET Framework 4.8)** 建置的企
 | .NET Framework | 4.8 (SDK-style) | 基礎框架 |
 | ASP.NET Web API 2 | 5.3.0 | RESTful API |
 | OWIN / Katana | 4.2.2 | 中介層管線（認證/CORS） |
-| Autofac | 8.4.0 | DI 容器 |
-| NSwag | 14.6.3 | Swagger 文件 |
+| Autofac | 9.1.0 | DI 容器 |
+| Asp.Versioning.WebApi | 7.1.0 | API 版本管理 |
+| NSwag | 14.7.0 | Swagger 文件 |
 | Serilog | 4.3.1 | 結構化日誌 |
-| MSTest | 3.8.3 | 單元測試 |
+| MSTest | 4.2.1 | 單元測試 |
 | Moq | 4.20.72 | Mock 框架 |
 | C# | 7.3+ | 開發語言 |
 
@@ -147,6 +148,11 @@ IIS 啟動
   <add key="Cors:AllowedOrigins" value="" />         <!-- 逗號分隔，留空=允許所有 -->
   <add key="Cors:AllowCredentials" value="true" />
   <add key="Cors:MaxAge" value="3600" />
+
+  <!-- RBAC 服務 -->
+  <add key="RbacApiBaseUrl" value="http://internal-rbac-api:8080" />
+  <add key="RbacApiTimeoutSeconds" value="10" />
+  <add key="RbacCacheTtlMinutes" value="5" />        <!-- RBAC 查詢結果快取分鐘數 -->
 </appSettings>
 ```
 
@@ -293,7 +299,59 @@ public class AdminController : ApiBaseController { }
 
 ---
 
-## 7. URL 路由慣例
+## 7. API 版本管理 (Asp.Versioning.WebApi 7.x)
+
+### 7.1 版本讀取策略
+
+| 策略 | 範例 | 對應場景 |
+|---|---|---|
+| **URL Segment （首選）** | `GET /webapi/aoi/v1/aoi01/status` | 一般 REST API |
+| **Query String** | `GET /webapi/aoi/aoi01/status?api-version=1.0` | 向後相容測試 |
+| **Header** | `X-Api-Version: 1.0` | 服務間呼叫 |
+
+### 7.2 Controller 版本標記樣板
+
+```csharp
+using Asp.Versioning;
+
+// V1 Controller
+[ApiVersion("1.0")]
+[RoutePrefix("webapi/aoi/v{version:apiVersion}/aoi01")]
+public class AOI01Controller : ApiBaseController { ... }
+
+// V2 Controller （Breaking Change：欄位重命名）
+[ApiVersion("2.0")]
+[RoutePrefix("webapi/aoi/v{version:apiVersion}/aoi01")]
+public class AOI01Controller : ApiBaseController  // 同名區不同 Namespace
+{
+    [HttpPost, Route("inspect")]
+    public IHttpActionResult Inspect([FromBody] AOIInspectionV2Request request)
+    {
+        // 適配層：v2 模型轉換為服務層 v1 模型（避免改動服務介面）
+        var v1Request = new AOIInspectionRequest
+        {
+            StationCode   = request.WorkstationCode,  // v2 欄位更名
+            InspectionItems = request.Items           // v2 欄位更名
+        };
+        return ApiOk(_aoiService.Inspect(v1Request));
+    }
+}
+```
+
+### 7.3 版本演進原則
+
+| 類型 | 處理方式 | 範例 |
+|---|---|---|
+| **Non-breaking** | 維持相同版本 | 新增可選欄位 |
+| **Breaking** | 新建版本號 | 欄位重命名/刪除/必填欄位變更 |
+| **廢棄舊版本** | `[ApiVersion("1.0", Deprecated = true)]` | 添加 deprecated 標記 |
+
+> [!IMPORTANT]
+> `AddApiVersioning()` 必須在 `MapHttpAttributeRoutes()` 之前呼叫，否則 `{version:apiVersion}` constraint 解析失敗。詳見 [TechReport-AspVersioning.md](./TechReport-AspVersioning.md)。
+
+---
+
+## 8. URL 路由慣例
 
 ### 路由格式
 
@@ -407,6 +465,7 @@ namespace SKERPAPI.AOI.Controllers.V1
 | CORS Layer 1 | `CorsConfig` | OWIN MW | 全域 preflight |
 | CORS Layer 2 | `[EnableCors]` | Web API | Controller/Action 精細控制 |
 | 授權 | `PermissionAuthorizeAttribute` | Web API Filter | RBAC 權限檢查 |
+| RBAC 服務 | `CachingRbacService` + `RbacServiceClient` | Service Layer | HTTP 呼叫外部 RBAC API，内建 5 分鐘快取 |
 | 限速 | `RateLimitAttribute` | Web API Filter | 預設 100 次/分鐘 |
 | 審計日誌 | `AuditLogAttribute` | Web API Filter | API 呼叫生命週期 |
 | 安全標頭 | `SecurityHeadersAttribute` | Web API Filter | XSS/Clickjacking 防護 |
