@@ -13,11 +13,13 @@ namespace SKERPAPI.Core.Controllers
     /// 所有模組的 Controller 應繼承此類別。
     /// </summary>
     /// <remarks>
-    /// 已套用的全域 Attribute：
+    /// 已套用的 Attribute：
     ///   - RateLimit：每分鐘 100 次限速
     ///   - AuditLog：操作審計日誌
     ///   - SecurityHeaders：安全回應標頭
-    /// 注意：認證與授權由各 Action 上的 [RbacAuthorize] 負責。
+    ///
+    /// 認證由 OWIN Pipeline Middleware 處理 (ApiKeyAuth / JwtBearer / mTLS)。
+    /// 授權可在 Controller/Action 上加入 [PermissionAuthorize("xxx")] 或 [RbacAuthorize(Permission = ...)] Attribute。
     /// </remarks>
     [Filters.RateLimit(MaxRequestsPerMinute = 100)]
     [Filters.AuditLog]

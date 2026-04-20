@@ -3,12 +3,13 @@ using System.Web.Http.Routing;
 using Asp.Versioning;
 using Asp.Versioning.Routing;
 using SKERPAPI.Core.Extensions;
+using SKERPAPI.Core.Security.Cors;
 
 namespace SKERPAPI.Host
 {
     /// <summary>
     /// Web API 配置入口。
-    /// 負責路由、過濾器、DI、模組載入配置。
+    /// 負責路由、過濾器、DI、模組載入、CORS (Layer 2) 配置。
     /// </summary>
     public static class WebApiConfig
     {
@@ -22,16 +23,16 @@ namespace SKERPAPI.Host
             // 1. 註冊 Core 層全域過濾器
             config.RegisterCoreFilters();
 
-            // 2. 註冊 API Versioning（Asp.Versioning.WebApi 7.x）
+            // 2. 啟用 CORS (Layer 2 - Web API Attribute 精細控制)
+            CorsConfig.EnableWebApiCors(config);
+
+            // 3. 註冊 API Versioning（Asp.Versioning.WebApi 7.x）
             //    「必須在 MapHttpAttributeRoutes 之前」，才能讓 {version:apiVersion} constraint 正確識別
             config.AddApiVersioning(options =>
             {
-                // 在回應 header 中回報支援的版本（api-supported-versions / api-deprecated-versions）
                 options.ReportApiVersions = true;
-                // 未指定版本時，使用預設版本 1.0
                 options.AssumeDefaultVersionWhenUnspecified = true;
                 options.DefaultApiVersion = new ApiVersion(1, 0);
-                // 組合多種版本讀取器：URL segment（/v1/）、query（?api-version=1.0）、header（X-Api-Version: 1.0）
                 options.ApiVersionReader = ApiVersionReader.Combine(
                     new UrlSegmentApiVersionReader(),
                     new QueryStringApiVersionReader("api-version"),
@@ -39,8 +40,7 @@ namespace SKERPAPI.Host
                 );
             });
 
-            // 3. 啟用 Attribute Routing（掃描所有模組 Assembly 的 [RoutePrefix]）
-            //    需在 AddApiVersioning 之後執行，不然 apiVersion constraint 會訪失敗
+            // 4. 啟用 Attribute Routing（需在 AddApiVersioning 之後）
             //    必須明確傳入含 ApiVersionRouteConstraint 的 resolver，否則 {version:apiVersion} 無法識別
             var constraintResolver = new DefaultInlineConstraintResolver();
             constraintResolver.ConstraintMap.Add("apiVersion", typeof(ApiVersionRouteConstraint));
@@ -55,7 +55,7 @@ namespace SKERPAPI.Host
             // 6. 自動載入內建模組 (AOI, CAR, ...)
             ModuleInitializerRunner.RunAll(config);
 
-            // 6. 預設路由（備援）
+            // 7. 預設路由（備援）
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
@@ -66,3 +66,4 @@ namespace SKERPAPI.Host
         }
     }
 }
+

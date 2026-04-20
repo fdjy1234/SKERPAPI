@@ -6,6 +6,7 @@ using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
 using SKERPAPI.Core.Interfaces;
+using SKERPAPI.Core.Security.Authorization;
 using SKERPAPI.Core.Services;
 
 namespace SKERPAPI.Host
@@ -50,7 +51,7 @@ namespace SKERPAPI.Host
                 }
             }
 
-            // 4. 明確註冊 RBAC 服務（Singleton，覆蓋自動掃描；使用 Decorator 模式加快取層）
+            // 4. 明確註冊 RBAC 服務（Singleton，覆蓋自動掃描；Decorator 模式加快取層）
             var rbacBaseUrl = ConfigurationManager.AppSettings["RbacApiBaseUrl"] ?? string.Empty;
             var rbacTimeout = int.TryParse(ConfigurationManager.AppSettings["RbacApiTimeoutSeconds"], out int t) ? t : 10;
             var rbacTtl = int.TryParse(ConfigurationManager.AppSettings["RbacCacheTtlMinutes"], out int m) ? m : 5;
@@ -71,6 +72,17 @@ namespace SKERPAPI.Host
                 .As<IRbacService>()
                 .SingleInstance();
 
+            // 5. 註冊授權 Provider (IAuthorizationProvider)
+            // ── 開發環境：使用 ConfigBasedAuthProvider（全部放行）──
+            builder.RegisterType<ConfigBasedAuthProvider>()
+                .As<IAuthorizationProvider>()
+                .SingleInstance();
+
+            // ── 正式環境：切換為 DbRbacAuthProvider ──
+            // builder.RegisterType<DbRbacAuthProvider>()
+            //     .As<IAuthorizationProvider>()
+            //     .SingleInstance();
+
             // 5. 建立容器並設為 Web API 的 DependencyResolver
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
@@ -81,3 +93,4 @@ namespace SKERPAPI.Host
         }
     }
 }
+
