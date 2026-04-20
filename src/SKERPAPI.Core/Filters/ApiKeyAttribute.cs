@@ -20,6 +20,7 @@ namespace SKERPAPI.Core.Filters
     /// 金鑰設定在 Web.config 的 appSettings：
     ///   &lt;add key="ApiKey" value="your-secret-key" /&gt;
     /// </remarks>
+    [System.Obsolete("ApiKeyAttribute 已由 RbacAuthorizeAttribute 取代，請改用 [RbacAuthorize(Permission = ...)]。")]
     public class ApiKeyAttribute : ActionFilterAttribute
     {
         public override void OnActionExecuting(HttpActionContext actionContext)

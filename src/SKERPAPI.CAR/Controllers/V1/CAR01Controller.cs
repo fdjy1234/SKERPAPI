@@ -1,5 +1,8 @@
 using System.Web.Http;
+using Asp.Versioning;
 using SKERPAPI.Core.Controllers;
+using SKERPAPI.Core.Filters;
+using SKERPAPI.Core.Permissions;
 using SKERPAPI.CAR.Services;
 using SKERPAPI.CAR.Models;
 
@@ -8,7 +11,8 @@ namespace SKERPAPI.CAR.Controllers.V1
     /// <summary>
     /// CAR01 控制器 - 車輛管理主要端點
     /// </summary>
-    [RoutePrefix("webapi/car/v1/car01")]
+    [ApiVersion("1.0")]
+    [RoutePrefix("webapi/car/v{version:apiVersion}/car01")]
     public class CAR01Controller : ApiBaseController
     {
         private readonly ICARService _carService;
@@ -22,6 +26,7 @@ namespace SKERPAPI.CAR.Controllers.V1
         /// 取得 CAR 系統資訊
         /// </summary>
         [HttpGet, Route("info")]
+        [RbacAuthorize(Permission = RbacPermissions.Car.SystemRead)]
         public IHttpActionResult GetInfo()
         {
             return ApiOk(new
@@ -36,8 +41,7 @@ namespace SKERPAPI.CAR.Controllers.V1
         /// <summary>
         /// 註冊新車輛
         /// </summary>
-        [HttpPost, Route("register")]
-        public IHttpActionResult RegisterCar([FromBody] CarRegistrationRequest request)
+        [HttpPost, Route("register")]        [RbacAuthorize(Permission = RbacPermissions.Car.VehicleRegister)]        public IHttpActionResult RegisterCar([FromBody] CarRegistrationRequest request)
         {
             if (!ValidateRequest())
             {
@@ -51,8 +55,7 @@ namespace SKERPAPI.CAR.Controllers.V1
         /// <summary>
         /// 取得車輛清單 (分頁)
         /// </summary>
-        [HttpGet, Route("list")]
-        public IHttpActionResult GetCars(int page = 1, int pageSize = 20)
+        [HttpGet, Route("list")]        [RbacAuthorize(Permission = RbacPermissions.Car.VehicleRead)]        public IHttpActionResult GetCars(int page = 1, int pageSize = 20)
         {
             var result = _carService.GetAllCars(page, pageSize);
             return ApiPagedOk(result.Items, result.TotalCount, page, pageSize);
@@ -61,8 +64,7 @@ namespace SKERPAPI.CAR.Controllers.V1
         /// <summary>
         /// 取得指定車輛資訊
         /// </summary>
-        [HttpGet, Route("{carId}")]
-        public IHttpActionResult GetCar(string carId)
+        [HttpGet, Route("{carId}")]        [RbacAuthorize(Permission = RbacPermissions.Car.VehicleRead)]        public IHttpActionResult GetCar(string carId)
         {
             var car = _carService.GetCarInfo(carId);
             if (car == null)

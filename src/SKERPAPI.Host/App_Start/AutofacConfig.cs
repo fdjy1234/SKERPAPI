@@ -1,9 +1,12 @@
 using System;
+using System.Configuration;
 using System.Linq;
-using System.Reflection;
+using System.Net.Http;
 using System.Web.Http;
 using Autofac;
 using Autofac.Integration.WebApi;
+using SKERPAPI.Core.Interfaces;
+using SKERPAPI.Core.Services;
 
 namespace SKERPAPI.Host
 {
@@ -47,12 +50,34 @@ namespace SKERPAPI.Host
                 }
             }
 
-            // 4. 建立容器並設為 Web API 的 DependencyResolver
+            // 4. 明確註冊 RBAC 服務（Singleton，覆蓋自動掃描；使用 Decorator 模式加快取層）
+            var rbacBaseUrl = ConfigurationManager.AppSettings["RbacApiBaseUrl"] ?? string.Empty;
+            var rbacTimeout = int.TryParse(ConfigurationManager.AppSettings["RbacApiTimeoutSeconds"], out int t) ? t : 10;
+            var rbacTtl = int.TryParse(ConfigurationManager.AppSettings["RbacCacheTtlMinutes"], out int m) ? m : 5;
+
+            var rbacHttpClient = new HttpClient
+            {
+                BaseAddress = new Uri(rbacBaseUrl.TrimEnd('/') + "/"),
+                Timeout = TimeSpan.FromSeconds(rbacTimeout)
+            };
+
+            builder.Register(_ => new RbacServiceClient(rbacHttpClient))
+                .Named<IRbacService>("rbacClient")
+                .SingleInstance();
+
+            builder.Register(c => new CachingRbacService(
+                    c.ResolveNamed<IRbacService>("rbacClient"),
+                    TimeSpan.FromMinutes(rbacTtl)))
+                .As<IRbacService>()
+                .SingleInstance();
+
+            // 5. 建立容器並設為 Web API 的 DependencyResolver
             var container = builder.Build();
             config.DependencyResolver = new AutofacWebApiDependencyResolver(container);
 
-            Serilog.Log.Information("Autofac DI container configured. Scanned {Count} assemblies + {PluginCount} plugins.",
-                assemblies.Length, pluginAssemblies.Length);
+            Serilog.Log.Information(
+                "Autofac DI container configured. Scanned {Count} assemblies + {PluginCount} plugins. RBAC URL: {RbacUrl}, TTL: {Ttl}min.",
+                assemblies.Length, pluginAssemblies.Length, rbacBaseUrl, rbacTtl);
         }
     }
 }

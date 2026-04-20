@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<xs:schema id="beUserPermission" targetNamespace="http://tempuri.org/beUserPermission.xsd"
+	elementFormDefault="qualified" attributeFormDefault="qualified" xmlns="http://tempuri.org/beUserPermission.xsd"
+	xmlns:mstns="http://tempuri.org/beUserPermission.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+	<xs:element name="beUserPermission" msdata:IsDataSet="true">
+		<xs:complexType>
+			<xs:choice maxOccurs="unbounded">
+				<xs:element name="GrantedPrograms">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ProgramID" type="xs:string" minOccurs="0" />
+							<xs:element name="ProgramName" type="xs:string" minOccurs="0" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="ProgramPermission">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ProgramID" type="xs:string" minOccurs="0" />
+							<xs:element name="ActionType" type="xs:int" minOccurs="0" />
+							<xs:element name="Permission" type="xs:int" minOccurs="0" />
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:choice>
+		</xs:complexType>
+		<xs:key name="beUserPermissionKey1" msdata:PrimaryKey="true">
+			<xs:selector xpath=".//mstns:GrantedPrograms" />
+			<xs:field xpath="mstns:ProgramID" />
+		</xs:key>
+		<xs:key name="beUserPermissionKey2" msdata:PrimaryKey="true">
+			<xs:selector xpath=".//mstns:ProgramPermission" />
+			<xs:field xpath="mstns:ProgramID" />
+			<xs:field xpath="mstns:ActionType" />
+		</xs:key>
+		<xs:keyref name="GrantedProgramsProgramPermission" refer="beUserPermissionKey1">
+			<xs:selector xpath=".//mstns:ProgramPermission" />
+			<xs:field xpath="mstns:ProgramID" />
+		</xs:keyref>
+	</xs:element>
+</xs:schema>

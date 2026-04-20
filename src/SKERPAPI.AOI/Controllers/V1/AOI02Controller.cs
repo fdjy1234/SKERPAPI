@@ -1,20 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Http;
+using Asp.Versioning;
 using SKERPAPI.Core.Controllers;
+using SKERPAPI.Core.Filters;
+using SKERPAPI.Core.Permissions;
 
 namespace SKERPAPI.AOI.Controllers.V1
 {
     /// <summary>
     /// AOI02 控制器 - AOI 設備管理端點
     /// </summary>
-    [RoutePrefix("webapi/aoi/v1/aoi02")]
+    [ApiVersion("1.0")]
+    [RoutePrefix("webapi/aoi/v{version:apiVersion}/aoi02")]
     public class AOI02Controller : ApiBaseController
     {
         /// <summary>
         /// 取得 AOI 設備清單
         /// </summary>
         [HttpGet, Route("devices")]
+        [RbacAuthorize(Permission = RbacPermissions.Aoi.DeviceRead)]
         public IHttpActionResult GetDevices()
         {
             var devices = new List<object>
@@ -30,6 +35,7 @@ namespace SKERPAPI.AOI.Controllers.V1
         /// 取得單一 AOI 設備資訊
         /// </summary>
         [HttpGet, Route("devices/{id}")]
+        [RbacAuthorize(Permission = RbacPermissions.Aoi.DeviceRead)]
         public IHttpActionResult GetDevice(string id)
         {
             if (string.IsNullOrEmpty(id))

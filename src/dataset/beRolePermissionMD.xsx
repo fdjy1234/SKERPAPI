@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--此檔案是由 XML 結構描述設計工具自動產生。它儲存元件在設計工具介面上的版面配置資訊。-->
+<XSDDesignerLayout layoutVersion="2" viewPortLeft="0" viewPortTop="-153" zoom="100">
+    <RolePermission_XmlElement left="7172" top="1004" width="5292" height="3122" selected="0" zOrder="1" index="0" expanded="1" />
+    <Roles_XmlElement left="7277" top="5000" width="5292" height="3122" selected="0" zOrder="2" index="1" expanded="1" />
+    <ProgramAction_XmlElement left="14897" top="847" width="5292" height="3122" selected="0" zOrder="4" index="2" expanded="1" />
+    <Programs_XmlElement left="13283" top="5079" width="5292" height="3122" selected="0" zOrder="6" index="3" expanded="1" />
+    <Actions_XmlElement left="19448" top="5159" width="5292" height="3122" selected="0" zOrder="8" index="4" expanded="1" />
+    <Permissions_XmlElement left="794" top="5397" width="5662" height="2673" selected="0" zOrder="10" index="5" expanded="1" />
+    <RolesRolePermission_XmlKeyref left="6395" top="4405" width="503" height="503" selected="0" zOrder="12" />
+    <ActionsProgramAction_XmlKeyref left="23592" top="3110" width="503" height="503" selected="0" zOrder="28" />
+    <ActionsRolePermission_XmlKeyref left="15547" top="4115" width="503" height="503" selected="0" zOrder="20" />
+    <ProgramsProgramAction_XmlKeyref left="19358" top="4089" width="503" height="503" selected="0" zOrder="24" />
+    <PermissionsRolePermission_XmlKeyref left="5175" top="3771" width="503" height="503" selected="0" zOrder="32" />
+    <ProgramsRolePermission_XmlKeyref left="12383" top="4380" width="503" height="503" selected="0" zOrder="16" />
+</XSDDesignerLayout>

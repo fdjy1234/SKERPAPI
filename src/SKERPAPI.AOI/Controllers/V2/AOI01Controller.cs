@@ -6,36 +6,32 @@ using SKERPAPI.Core.Permissions;
 using SKERPAPI.AOI.Services;
 using SKERPAPI.AOI.Models;
 
-namespace SKERPAPI.AOI.Controllers.V1
+namespace SKERPAPI.AOI.Controllers.V2
 {
     /// <summary>
-    /// AOI01 v1 控制器 - AOI 檢測主要端點
+    /// AOI01 v2 控制器 - AOI 檢測主要端點（v2）
     /// </summary>
     /// <remarks>
     /// 路由前綴: webapi/aoi/v{version}/aoi01
     ///
-    /// 端點清單:
-    ///   GET  webapi/aoi/v1/aoi01/status     - 取得系統狀態
-    ///   POST webapi/aoi/v1/aoi01/inspect    - 執行檢測
-    ///   GET  webapi/aoi/v1/aoi01/history    - 查詢檢測記錄 (分頁)
+    /// Breaking changes from v1:
+    ///   - POST inspect: 請求模型由 AOIInspectionRequest 改為 AOIInspectionV2Request
+    ///     - StationCode  → WorkstationCode
+    ///     - InspectionItems → Items
+    ///     - 新增 Priority 欄位
     /// </remarks>
-    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     [RoutePrefix("webapi/aoi/v{version:apiVersion}/aoi01")]
     public class AOI01Controller : ApiBaseController
     {
         private readonly IAOIService _aoiService;
 
-        /// <summary>
-        /// 建構子 - 透過 DI 注入 IAOIService
-        /// </summary>
         public AOI01Controller(IAOIService aoiService)
         {
             _aoiService = aoiService;
         }
 
-        /// <summary>
-        /// 取得 AOI 系統狀態
-        /// </summary>
+        /// <summary>取得 AOI 系統狀態</summary>
         [HttpGet, Route("status")]
         [RbacAuthorize(Permission = RbacPermissions.Aoi.StatusRead)]
         public IHttpActionResult GetStatus()
@@ -45,24 +41,31 @@ namespace SKERPAPI.AOI.Controllers.V1
         }
 
         /// <summary>
-        /// 執行 AOI 檢測
+        /// 執行 AOI 檢測（v2 - 使用新的 AOIInspectionV2Request 模型）
         /// </summary>
         [HttpPost, Route("inspect")]
         [RbacAuthorize(Permission = RbacPermissions.Aoi.InspectionExecute)]
-        public IHttpActionResult Inspect([FromBody] AOIInspectionRequest request)
+        public IHttpActionResult Inspect([FromBody] AOIInspectionV2Request request)
         {
             if (!ValidateRequest())
             {
                 return ApiFail("Validation failed.");
             }
 
-            var result = _aoiService.Inspect(request);
+            // 適配層：將 v2 請求轉換為服務層使用的 v1 模型
+            var v1Request = new AOIInspectionRequest
+            {
+                BatchId = request.BatchId,
+                StationCode = request.WorkstationCode,
+                InspectionItems = request.Items,
+                OperatorId = request.OperatorId
+            };
+
+            var result = _aoiService.Inspect(v1Request);
             return ApiOk(result);
         }
 
-        /// <summary>
-        /// 查詢 AOI 檢測歷史記錄 (分頁)
-        /// </summary>
+        /// <summary>查詢 AOI 檢測歷史記錄（分頁）</summary>
         [HttpGet, Route("history")]
         [RbacAuthorize(Permission = RbacPermissions.Aoi.InspectionHistory)]
         public IHttpActionResult GetHistory(int page = 1, int pageSize = 20)

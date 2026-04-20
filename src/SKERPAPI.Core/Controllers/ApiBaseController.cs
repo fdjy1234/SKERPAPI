@@ -14,12 +14,11 @@ namespace SKERPAPI.Core.Controllers
     /// </summary>
     /// <remarks>
     /// 已套用的全域 Attribute：
-    ///   - ApiKey：API 金鑰驗證
     ///   - RateLimit：每分鐘 100 次限速
     ///   - AuditLog：操作審計日誌
     ///   - SecurityHeaders：安全回應標頭
+    /// 注意：認證與授權由各 Action 上的 [RbacAuthorize] 負責。
     /// </remarks>
-    [Filters.ApiKey]
     [Filters.RateLimit(MaxRequestsPerMinute = 100)]
     [Filters.AuditLog]
     [Filters.SecurityHeaders]

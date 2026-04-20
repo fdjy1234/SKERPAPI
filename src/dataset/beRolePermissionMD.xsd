@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="beRolePermissionMD" targetNamespace="http://tempuri.org/beRolePermissionMD.xsd" xmlns:mstns="http://tempuri.org/beRolePermissionMD.xsd" xmlns="http://tempuri.org/beRolePermissionMD.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="beRolePermissionMD" msdata:IsDataSet="true" msdata:Locale="en-US" msprop:Generator_UserDSName="beRolePermissionMD" msprop:Generator_DataSetName="beRolePermissionMD">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="RolePermission" msprop:Generator_UserTableName="RolePermission" msprop:Generator_RowDeletedName="RolePermissionRowDeleted" msprop:Generator_TableClassName="RolePermissionDataTable" msprop:Generator_RowChangedName="RolePermissionRowChanged" msprop:Generator_RowClassName="RolePermissionRow" msprop:Generator_RowChangingName="RolePermissionRowChanging" msprop:Generator_RowEvArgName="RolePermissionRowChangeEvent" msprop:Generator_RowEvHandlerName="RolePermissionRowChangeEventHandler" msprop:Generator_TablePropName="RolePermission" msprop:Generator_TableVarName="tableRolePermission" msprop:Generator_RowDeletingName="RolePermissionRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RoleID" msprop:Generator_UserColumnName="RoleID" msprop:Generator_ColumnPropNameInRow="RoleID" msprop:Generator_ColumnVarNameInTable="columnRoleID" msprop:Generator_ColumnPropNameInTable="RoleIDColumn" type="xs:string" />
+              <xs:element name="ProgramID" msprop:Generator_UserColumnName="ProgramID" msprop:Generator_ColumnPropNameInRow="ProgramID" msprop:Generator_ColumnVarNameInTable="columnProgramID" msprop:Generator_ColumnPropNameInTable="ProgramIDColumn" type="xs:string" />
+              <xs:element name="ActionType" msprop:Generator_UserColumnName="ActionType" msprop:Generator_ColumnPropNameInRow="ActionType" msprop:Generator_ColumnVarNameInTable="columnActionType" msprop:Generator_ColumnPropNameInTable="ActionTypeColumn" type="xs:int" />
+              <xs:element name="Permission" msprop:Generator_UserColumnName="Permission" msprop:Generator_ColumnPropNameInRow="Permission" msprop:Generator_ColumnVarNameInTable="columnPermission" msprop:Generator_ColumnPropNameInTable="PermissionColumn" type="xs:int" default="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Roles" msprop:Generator_UserTableName="Roles" msprop:Generator_RowDeletedName="RolesRowDeleted" msprop:Generator_TableClassName="RolesDataTable" msprop:Generator_RowChangedName="RolesRowChanged" msprop:Generator_RowClassName="RolesRow" msprop:Generator_RowChangingName="RolesRowChanging" msprop:Generator_RowEvArgName="RolesRowChangeEvent" msprop:Generator_RowEvHandlerName="RolesRowChangeEventHandler" msprop:Generator_TablePropName="Roles" msprop:Generator_TableVarName="tableRoles" msprop:Generator_RowDeletingName="RolesRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="RoleID" msprop:Generator_UserColumnName="RoleID" msprop:Generator_ColumnPropNameInRow="RoleID" msprop:Generator_ColumnVarNameInTable="columnRoleID" msprop:Generator_ColumnPropNameInTable="RoleIDColumn" type="xs:string" />
+              <xs:element name="RoleName" msprop:Generator_UserColumnName="RoleName" msprop:Generator_ColumnPropNameInRow="RoleName" msprop:Generator_ColumnVarNameInTable="columnRoleName" msprop:Generator_ColumnPropNameInTable="RoleNameColumn" type="xs:string" minOccurs="0" />
+              <xs:element name="Description" msprop:Generator_UserColumnName="Description" msprop:Generator_ColumnPropNameInRow="Description" msprop:Generator_ColumnVarNameInTable="columnDescription" msprop:Generator_ColumnPropNameInTable="DescriptionColumn" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="ProgramAction" msprop:Generator_UserTableName="ProgramAction" msprop:Generator_RowDeletedName="ProgramActionRowDeleted" msprop:Generator_TableClassName="ProgramActionDataTable" msprop:Generator_RowChangedName="ProgramActionRowChanged" msprop:Generator_RowClassName="ProgramActionRow" msprop:Generator_RowChangingName="ProgramActionRowChanging" msprop:Generator_RowEvArgName="ProgramActionRowChangeEvent" msprop:Generator_RowEvHandlerName="ProgramActionRowChangeEventHandler" msprop:Generator_TablePropName="ProgramAction" msprop:Generator_TableVarName="tableProgramAction" msprop:Generator_RowDeletingName="ProgramActionRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ProgramID" msprop:Generator_UserColumnName="ProgramID" msprop:Generator_ColumnPropNameInRow="ProgramID" msprop:Generator_ColumnVarNameInTable="columnProgramID" msprop:Generator_ColumnPropNameInTable="ProgramIDColumn" type="xs:string" />
+              <xs:element name="ActionType" msprop:Generator_UserColumnName="ActionType" msprop:Generator_ColumnPropNameInRow="ActionType" msprop:Generator_ColumnVarNameInTable="columnActionType" msprop:Generator_ColumnPropNameInTable="ActionTypeColumn" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Programs" msprop:Generator_UserTableName="Programs" msprop:Generator_RowDeletedName="ProgramsRowDeleted" msprop:Generator_TableClassName="ProgramsDataTable" msprop:Generator_RowChangedName="ProgramsRowChanged" msprop:Generator_RowClassName="ProgramsRow" msprop:Generator_RowChangingName="ProgramsRowChanging" msprop:Generator_RowEvArgName="ProgramsRowChangeEvent" msprop:Generator_RowEvHandlerName="ProgramsRowChangeEventHandler" msprop:Generator_TablePropName="Programs" msprop:Generator_TableVarName="tablePrograms" msprop:Generator_RowDeletingName="ProgramsRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ProgramID" msprop:Generator_UserColumnName="ProgramID" msprop:Generator_ColumnPropNameInRow="ProgramID" msprop:Generator_ColumnVarNameInTable="columnProgramID" msprop:Generator_ColumnPropNameInTable="ProgramIDColumn" type="xs:string" />
+              <xs:element name="RelativeUrl" msprop:Generator_UserColumnName="RelativeUrl" msprop:Generator_ColumnPropNameInRow="RelativeUrl" msprop:Generator_ColumnVarNameInTable="columnRelativeUrl" msprop:Generator_ColumnPropNameInTable="RelativeUrlColumn" type="xs:string" />
+              <xs:element name="ProgramName" msprop:Generator_UserColumnName="ProgramName" msprop:Generator_ColumnPropNameInRow="ProgramName" msprop:Generator_ColumnVarNameInTable="columnProgramName" msprop:Generator_ColumnPropNameInTable="ProgramNameColumn" type="xs:string" minOccurs="0" />
+              <xs:element name="IsMenuItem" msprop:Generator_UserColumnName="IsMenuItem" msprop:Generator_ColumnPropNameInRow="IsMenuItem" msprop:Generator_ColumnVarNameInTable="columnIsMenuItem" msprop:Generator_ColumnPropNameInTable="IsMenuItemColumn" type="xs:boolean" />
+              <xs:element name="IsMultiInstance" msprop:Generator_UserColumnName="IsMultiInstance" msprop:Generator_ColumnPropNameInRow="IsMultiInstance" msprop:Generator_ColumnVarNameInTable="columnIsMultiInstance" msprop:Generator_ColumnPropNameInTable="IsMultiInstanceColumn" type="xs:boolean" />
+              <xs:element name="IsResetExistInstance" msprop:Generator_UserColumnName="IsResetExistInstance" msprop:Generator_ColumnPropNameInRow="IsResetExistInstance" msprop:Generator_ColumnVarNameInTable="columnIsResetExistInstance" msprop:Generator_ColumnPropNameInTable="IsResetExistInstanceColumn" type="xs:boolean" />
+              <xs:element name="IsRequireApprove" msprop:Generator_UserColumnName="IsRequireApprove" msprop:Generator_ColumnPropNameInRow="IsRequireApprove" msprop:Generator_ColumnVarNameInTable="columnIsRequireApprove" msprop:Generator_ColumnPropNameInTable="IsRequireApproveColumn" type="xs:boolean" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Actions" msprop:Generator_UserTableName="Actions" msprop:Generator_RowDeletedName="ActionsRowDeleted" msprop:Generator_TableClassName="ActionsDataTable" msprop:Generator_RowChangedName="ActionsRowChanged" msprop:Generator_RowClassName="ActionsRow" msprop:Generator_RowChangingName="ActionsRowChanging" msprop:Generator_RowEvArgName="ActionsRowChangeEvent" msprop:Generator_RowEvHandlerName="ActionsRowChangeEventHandler" msprop:Generator_TablePropName="Actions" msprop:Generator_TableVarName="tableActions" msprop:Generator_RowDeletingName="ActionsRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ActionType" msprop:Generator_UserColumnName="ActionType" msprop:Generator_ColumnPropNameInRow="ActionType" msprop:Generator_ColumnVarNameInTable="columnActionType" msprop:Generator_ColumnPropNameInTable="ActionTypeColumn" type="xs:int" />
+              <xs:element name="ActionName" msprop:Generator_UserColumnName="ActionName" msprop:Generator_ColumnPropNameInRow="ActionName" msprop:Generator_ColumnVarNameInTable="columnActionName" msprop:Generator_ColumnPropNameInTable="ActionNameColumn" type="xs:string" />
+              <xs:element name="OrderSequence" msprop:Generator_UserColumnName="OrderSequence" msprop:Generator_ColumnPropNameInRow="OrderSequence" msprop:Generator_ColumnVarNameInTable="columnOrderSequence" msprop:Generator_ColumnPropNameInTable="OrderSequenceColumn" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Permissions" msprop:Generator_UserTableName="Permissions" msprop:Generator_RowDeletedName="PermissionsRowDeleted" msprop:Generator_TableClassName="PermissionsDataTable" msprop:Generator_RowChangedName="PermissionsRowChanged" msprop:Generator_RowClassName="PermissionsRow" msprop:Generator_RowChangingName="PermissionsRowChanging" msprop:Generator_RowEvArgName="PermissionsRowChangeEvent" msprop:Generator_RowEvHandlerName="PermissionsRowChangeEventHandler" msprop:Generator_TablePropName="Permissions" msprop:Generator_TableVarName="tablePermissions" msprop:Generator_RowDeletingName="PermissionsRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Permission" msprop:Generator_UserColumnName="Permission" msprop:Generator_ColumnPropNameInRow="Permission" msprop:Generator_ColumnVarNameInTable="columnPermission" msprop:Generator_ColumnPropNameInTable="PermissionColumn" type="xs:int" />
+              <xs:element name="PermissionName" msprop:Generator_UserColumnName="PermissionName" msprop:Generator_ColumnPropNameInRow="PermissionName" msprop:Generator_ColumnVarNameInTable="columnPermissionName" msprop:Generator_ColumnPropNameInTable="PermissionNameColumn" type="xs:string" />
+              <xs:element name="OrderSequence" msprop:Generator_UserColumnName="OrderSequence" msprop:Generator_ColumnPropNameInRow="OrderSequence" msprop:Generator_ColumnVarNameInTable="columnOrderSequence" msprop:Generator_ColumnPropNameInTable="OrderSequenceColumn" type="xs:int" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="PermissionsCulture" msprop:Generator_UserTableName="PermissionsCulture" msprop:Generator_RowDeletedName="PermissionsCultureRowDeleted" msprop:Generator_TableClassName="PermissionsCultureDataTable" msprop:Generator_RowChangedName="PermissionsCultureRowChanged" msprop:Generator_RowClassName="PermissionsCultureRow" msprop:Generator_RowChangingName="PermissionsCultureRowChanging" msprop:Generator_RowEvArgName="PermissionsCultureRowChangeEvent" msprop:Generator_RowEvHandlerName="PermissionsCultureRowChangeEventHandler" msprop:Generator_TablePropName="PermissionsCulture" msprop:Generator_TableVarName="tablePermissionsCulture" msprop:Generator_RowDeletingName="PermissionsCultureRowDeleting">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Permission" msprop:Generator_UserColumnName="Permission" msprop:Generator_ColumnPropNameInRow="Permission" msprop:Generator_ColumnVarNameInTable="columnPermission" msprop:Generator_ColumnPropNameInTable="PermissionColumn" type="xs:int" />
+              <xs:element name="CultureCode" msprop:Generator_UserColumnName="CultureCode" msprop:Generator_ColumnPropNameInRow="CultureCode" msprop:Generator_ColumnVarNameInTable="columnCultureCode" msprop:Generator_ColumnPropNameInTable="CultureCodeColumn" type="xs:string" />
+              <xs:element name="PermissionName" msprop:Generator_UserColumnName="PermissionName" msprop:Generator_ColumnPropNameInRow="PermissionName" msprop:Generator_ColumnVarNameInTable="columnPermissionName" msprop:Generator_ColumnPropNameInTable="PermissionNameColumn" type="xs:string" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="beRolePermissionMDKey1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:RolePermission" />
+      <xs:field xpath="mstns:RoleID" />
+      <xs:field xpath="mstns:ProgramID" />
+      <xs:field xpath="mstns:ActionType" />
+    </xs:unique>
+    <xs:unique name="beRolePermissionMDKey2" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Roles" />
+      <xs:field xpath="mstns:RoleID" />
+    </xs:unique>
+    <xs:unique name="beRolePermissionMDKey3" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:ProgramAction" />
+      <xs:field xpath="mstns:ProgramID" />
+      <xs:field xpath="mstns:ActionType" />
+    </xs:unique>
+    <xs:unique name="beRolePermissionMDKey4" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Programs" />
+      <xs:field xpath="mstns:ProgramID" />
+    </xs:unique>
+    <xs:unique name="beRolePermissionMDKey5" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Actions" />
+      <xs:field xpath="mstns:ActionType" />
+    </xs:unique>
+    <xs:unique name="beRolePermissionMDKey6" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Permissions" />
+      <xs:field xpath="mstns:Permission" />
+    </xs:unique>
+    <xs:unique name="PermissionsCultureKey1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:PermissionsCulture" />
+      <xs:field xpath="mstns:Permission" />
+      <xs:field xpath="mstns:CultureCode" />
+    </xs:unique>
+    <xs:keyref name="ActionsProgramAction" refer="beRolePermissionMDKey5" msprop:rel_Generator_UserRelationName="ActionsProgramAction" msprop:rel_Generator_RelationVarName="relationActionsProgramAction" msprop:rel_Generator_UserChildTable="ProgramAction" msprop:rel_Generator_UserParentTable="Actions" msprop:rel_Generator_ParentPropName="ActionsRow" msprop:rel_Generator_ChildPropName="GetProgramActionRows">
+      <xs:selector xpath=".//mstns:ProgramAction" />
+      <xs:field xpath="mstns:ActionType" />
+    </xs:keyref>
+    <xs:keyref name="ProgramsProgramAction" refer="beRolePermissionMDKey4" msprop:rel_Generator_UserRelationName="ProgramsProgramAction" msprop:rel_Generator_RelationVarName="relationProgramsProgramAction" msprop:rel_Generator_UserChildTable="ProgramAction" msprop:rel_Generator_UserParentTable="Programs" msprop:rel_Generator_ParentPropName="ProgramsRow" msprop:rel_Generator_ChildPropName="GetProgramActionRows">
+      <xs:selector xpath=".//mstns:ProgramAction" />
+      <xs:field xpath="mstns:ProgramID" />
+    </xs:keyref>
+    <xs:keyref name="PermissionsRolePermission" refer="beRolePermissionMDKey6" msprop:rel_Generator_UserRelationName="PermissionsRolePermission" msprop:rel_Generator_RelationVarName="relationPermissionsRolePermission" msprop:rel_Generator_UserChildTable="RolePermission" msprop:rel_Generator_UserParentTable="Permissions" msprop:rel_Generator_ParentPropName="PermissionsRow" msprop:rel_Generator_ChildPropName="GetRolePermissionRows">
+      <xs:selector xpath=".//mstns:RolePermission" />
+      <xs:field xpath="mstns:Permission" />
+    </xs:keyref>
+    <xs:keyref name="ActionsRolePermission" refer="beRolePermissionMDKey5" msprop:rel_Generator_UserRelationName="ActionsRolePermission" msprop:rel_Generator_RelationVarName="relationActionsRolePermission" msprop:rel_Generator_UserChildTable="RolePermission" msprop:rel_Generator_UserParentTable="Actions" msprop:rel_Generator_ParentPropName="ActionsRow" msprop:rel_Generator_ChildPropName="GetRolePermissionRows">
+      <xs:selector xpath=".//mstns:RolePermission" />
+      <xs:field xpath="mstns:ActionType" />
+    </xs:keyref>
+    <xs:keyref name="ProgramsRolePermission" refer="beRolePermissionMDKey4" msprop:rel_Generator_UserRelationName="ProgramsRolePermission" msprop:rel_Generator_RelationVarName="relationProgramsRolePermission" msprop:rel_Generator_UserChildTable="RolePermission" msprop:rel_Generator_UserParentTable="Programs" msprop:rel_Generator_ParentPropName="ProgramsRow" msprop:rel_Generator_ChildPropName="GetRolePermissionRows">
+      <xs:selector xpath=".//mstns:RolePermission" />
+      <xs:field xpath="mstns:ProgramID" />
+    </xs:keyref>
+    <xs:keyref name="RolesRolePermission" refer="beRolePermissionMDKey2" msprop:rel_Generator_UserRelationName="RolesRolePermission" msprop:rel_Generator_RelationVarName="relationRolesRolePermission" msprop:rel_Generator_UserChildTable="RolePermission" msprop:rel_Generator_UserParentTable="Roles" msprop:rel_Generator_ParentPropName="RolesRow" msprop:rel_Generator_ChildPropName="GetRolePermissionRows">
+      <xs:selector xpath=".//mstns:RolePermission" />
+      <xs:field xpath="mstns:RoleID" />
+    </xs:keyref>
+  </xs:element>
+  <xs:annotation>
+    <xs:appinfo>
+      <msdata:Relationship name="Permissions_PermissionsCulture" msdata:parent="Permissions" msdata:child="PermissionsCulture" msdata:parentkey="Permission" msdata:childkey="Permission" msprop:Generator_UserRelationName="Permissions_PermissionsCulture" msprop:Generator_RelationVarName="relationPermissions_PermissionsCulture" msprop:Generator_UserChildTable="PermissionsCulture" msprop:Generator_UserParentTable="Permissions" msprop:Generator_ParentPropName="PermissionsRow" msprop:Generator_ChildPropName="GetPermissionsCultureRows" />
+    </xs:appinfo>
+  </xs:annotation>
+</xs:schema>
