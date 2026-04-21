@@ -20,6 +20,7 @@ SKERPAPI 目標提供強固且容易橫向擴展（模組化）的 API 後台系
 | **可測試** | 每層可獨立測試，Service / Controller 解耦，支援極速 E2E 測試 |
 | **企業級安全** | 多策略認證 (mTLS / OAuth2 / API Key)、可插拔 RBAC 授權、CORS 雙層管理 |
 | **API 版本管理** | 採用 `Asp.Versioning.WebApi` 7.x，支援 URL Segment / Query String / Header 三種版本讀取策略 |
+| **API 版本管理** | 採用 `Asp.Versioning.WebApi` 7.x，支援 URL Segment / Query String / Header 三種版本讀取策略 |
 
 ### 1.3 約束條件
 
@@ -153,6 +154,10 @@ graph LR
 * **決策**: 採用 **`Asp.Versioning.WebApi` 7.1.0** 進行 URL Segment 版本管理（`/v{version:apiVersion}/`）。服務層維持 v1 介面，Controller 層做版本適配（Adapter 模式）。Breaking change（欄位重命名/刪除）才建立新版本，Non-breaking change 維持舊版本。
 * **關鍵設定**: `AddApiVersioning()` 必須在 `MapHttpAttributeRoutes()` 之前呼叫；需手動將 `ApiVersionRouteConstraint` 加入 `DefaultInlineConstraintResolver.ConstraintMap`。
 
+### ADR-003: API 版本管理策略 (Asp.Versioning.WebApi)
+* **決策**: 採用 **`Asp.Versioning.WebApi` 7.1.0** 進行 URL Segment 版本管理（`/v{version:apiVersion}/`）。服務層維持 v1 介面，Controller 層做版本適配（Adapter 模式）。Breaking change（欄位重命名/刪除）才建立新版本，Non-breaking change 維持舊版本。
+* **關鍵設定**: `AddApiVersioning()` 必須在 `MapHttpAttributeRoutes()` 之前呼叫；需手動將 `ApiVersionRouteConstraint` 加入 `DefaultInlineConstraintResolver.ConstraintMap`。
+
 ### ADR-003b: 模組引用策略 (ProjectReference vs Plugin DLL)
 * **決策**: 目前階段選用 **ProjectReference** 以獲得最佳開發與偵錯體驗。Host 專案中內建 `ModuleLoader` 掃描邏輯，未來可無痛漸進式轉為從特定目錄動態讀取 (`App_Data/Plugins/`) 的 Plugin 模式。
 
@@ -178,6 +183,12 @@ graph LR
   - 開發環境: `ConfigBasedAuthProvider`（全部放行）
   - 正式環境: `DbRbacAuthProvider`（查詢 User-Role-Permission DB）
   - 未來擴充: `ActiveDirectoryAuthProvider`（對接 AD/LDAP）
+
+### ADR-011: RBAC 服務客戶端（IRbacService + CachingDecorator）
+* **決策**: 採用 Decorator 模式實作 RBAC 服務呼叫。`RbacServiceClient` 負責對外部 RBAC API HTTP 呼叫；`CachingRbacService` 在其外部加入記憶體快取層，降低對 RBAC API 的頻繁呼叫。
+  - 快取 TTL 可透過 `RbacCacheTtlMinutes` 設定（預設 5 分鐘）
+  - `RbacApiBaseUrl` / `RbacApiTimeoutSeconds` 設定於 Web.config
+  - 兩層透過 Autofac Named Registration (`rbacClient`) 串接
 
 ### ADR-011: RBAC 服務客戶端（IRbacService + CachingDecorator）
 * **決策**: 採用 Decorator 模式實作 RBAC 服務呼叫。`RbacServiceClient` 負責對外部 RBAC API HTTP 呼叫；`CachingRbacService` 在其外部加入記憶體快取層，降低對 RBAC API 的頻繁呼叫。
