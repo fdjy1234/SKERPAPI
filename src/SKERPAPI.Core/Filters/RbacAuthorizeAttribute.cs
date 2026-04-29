@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -11,12 +12,14 @@ using System.Web.Http.Filters;
 using Serilog;
 using SKERPAPI.Core.Interfaces;
 using SKERPAPI.Core.Models;
+using SKERPAPI.Core.Security;
 
 namespace SKERPAPI.Core.Filters
 {
     /// <summary>
-    /// RBAC 動態授權過濾器。
-    /// 讀取 X-Api-Key Header，呼叫 IRbacService 解析角色與權限，
+    /// RBAC 動態授權過濾器（Layer 2）。
+    /// 優先讀取 OWIN Layer 1 設定的 ClaimsPrincipal（支援 OAuth 2.0 Bearer Token 及 mTLS），
+    /// 向後相容則回退讀取 X-Api-Key Header；呼叫 IRbacService 解析角色與權限，
     /// 依 Permission 屬性決定是否允許存取。
     /// </summary>
     /// <remarks>
@@ -24,9 +27,14 @@ namespace SKERPAPI.Core.Filters
     ///   [RbacAuthorize(Permission = RbacPermissions.Aoi.InspectionExecute)]
     ///   public IHttpActionResult Inspect([FromBody] AOIInspectionRequest request) { ... }
     ///
+    /// 身份識別優先順序：
+    ///   1. ClaimsPrincipal.FindFirst("client_id") — OAuth Bearer Token / mTLS 用戶端
+    ///   2. ClaimsPrincipal.FindFirst(ClaimTypes.Name) — 備用 Name claim
+    ///   3. X-Api-Key Header — 舊版 API Key 向後相容
+    ///
     /// 失敗策略（Fail-Closed）：
     ///   - RBAC API 無法連線 → 503 Service Unavailable
-    ///   - API Key 不存在/無效 → 401 Unauthorized
+    ///   - 無有效身份識別      → 401 Unauthorized
     ///   - 無對應 Permission    → 403 Forbidden
     /// </remarks>
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false)]
@@ -43,14 +51,23 @@ namespace SKERPAPI.Core.Filters
             HttpActionContext actionContext,
             CancellationToken cancellationToken)
         {
-            string apiKey = null;
+            // ── 身份識別解析：優先 ClaimsPrincipal（Layer 1），回退 X-Api-Key Header ──
+            // 1. 嘗試從 OWIN 中間件設定的 ClaimsPrincipal 取得 client_id
+            var principal = actionContext.RequestContext.Principal as ClaimsPrincipal;
+            var clientId = principal?.FindFirst(SecurityConstants.ClientIdClaimType)?.Value
+                        ?? principal?.FindFirst(ClaimTypes.Name)?.Value;
 
-            if (actionContext.Request.Headers.TryGetValues("X-Api-Key", out IEnumerable<string> headerValues))
-                apiKey = headerValues.FirstOrDefault();
-
-            if (string.IsNullOrEmpty(apiKey))
+            // 2. Fallback：讀取 X-Api-Key Header（向後相容舊版 API Key 用戶端）
+            if (string.IsNullOrEmpty(clientId))
             {
-                SetResponse(actionContext, HttpStatusCode.Unauthorized, "Missing API key.");
+                if (actionContext.Request.Headers.TryGetValues(
+                    SecurityConstants.ApiKeyHeaderName, out IEnumerable<string> headerValues))
+                    clientId = headerValues.FirstOrDefault();
+            }
+
+            if (string.IsNullOrEmpty(clientId))
+            {
+                SetResponse(actionContext, HttpStatusCode.Unauthorized, "Missing authentication.");
                 return;
             }
 
@@ -80,12 +97,12 @@ namespace SKERPAPI.Core.Filters
             RbacContext context;
             try
             {
-                context = await rbacService.ResolveAsync(apiKey, cancellationToken)
+                context = await rbacService.ResolveAsync(clientId, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "RBAC service call failed for key {MaskedKey}.", MaskKey(apiKey));
+                Log.Error(ex, "RBAC service call failed for client {MaskedClientId}.", MaskKey(clientId));
                 SetResponse(actionContext, HttpStatusCode.ServiceUnavailable,
                     "Authorization service unavailable.");
                 return;
@@ -93,7 +110,7 @@ namespace SKERPAPI.Core.Filters
 
             if (!context.IsAuthenticated)
             {
-                Log.Warning("Unauthorized access attempt with key {MaskedKey}.", MaskKey(apiKey));
+                Log.Warning("Unauthorized access attempt by client {MaskedClientId}.", MaskKey(clientId));
                 SetResponse(actionContext, HttpStatusCode.Unauthorized, "Unauthorized.");
                 return;
             }
@@ -101,8 +118,8 @@ namespace SKERPAPI.Core.Filters
             if (!string.IsNullOrEmpty(Permission) && !context.HasPermission(Permission))
             {
                 Log.Warning(
-                    "Access denied. Key {MaskedKey} lacks permission {Permission}.",
-                    MaskKey(apiKey), Permission);
+                    "Access denied. Client {MaskedClientId} lacks permission {Permission}.",
+                    MaskKey(clientId), Permission);
                 SetResponse(actionContext, HttpStatusCode.Forbidden,
                     $"Forbidden. Required permission: {Permission}");
                 return;

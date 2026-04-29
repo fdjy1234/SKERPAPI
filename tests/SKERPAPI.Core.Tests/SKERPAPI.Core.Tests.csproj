@@ -4,6 +4,8 @@
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
+    <!-- Disable MSTest MTP runner; use classic VSTest adapter (required for net48) -->
+    <EnableMSTestRunner>false</EnableMSTestRunner>
   </PropertyGroup>
 
   <ItemGroup>

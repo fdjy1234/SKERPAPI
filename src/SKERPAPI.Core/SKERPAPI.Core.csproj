@@ -33,6 +33,8 @@
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
 
 </Project>

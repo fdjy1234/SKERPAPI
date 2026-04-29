@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <MSTest>
+    <!-- Run tests in the same AppDomain as testhost — avoids secondary LoadFrom context -->
+    <DisableAppDomain>true</DisableAppDomain>
+    <CaptureTraceOutput>false</CaptureTraceOutput>
+  </MSTest>
+  <RunConfiguration>
+    <TargetPlatform>x64</TargetPlatform>
+    <TargetFrameworkVersion>net48</TargetFrameworkVersion>
+  </RunConfiguration>
+</RunSettings>

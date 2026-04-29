@@ -1,6 +1,6 @@
 # SKERPAPI 開發手冊 (Developer Handbook)
 
-> **版本**: 2.1.0 | **最後更新**: 2026-04-20 | **適用對象**: 程式設計師
+> **版本**: 2.2.0 | **最後更新**: 2026-04-30 | **適用對象**: 程式設計師
 
 ---
 
@@ -162,11 +162,11 @@ IIS 啟動
 
 ### 4.1 支援的認證方式
 
-| 認證方式 | Header / 機制 | 適用場景 | 中介層 |
-|---|---|---|---|
-| **API Key** | `X-Api-Key: <key>` | 內部工具、開發環境 | `ApiKeyAuthMiddleware` |
-| **OAuth2 Bearer** | `Authorization: Bearer <token>` | SPA、Mobile、第三方 | `OAuthBearerAuthenticationMiddleware` |
-| **mTLS** | TLS Client Certificate | M2M、工廠設備 | `ClientCertificateAuthMiddleware` |
+| 認證方式 | Header / 機制 | 適用場景 | 中介層 | 設定的 claim_id |
+|---|---|---|---|---|
+| **API Key** | `X-Api-Key: <key>` | 內部工具、開發環境 | `ApiKeyAuthMiddleware` | `client_id` = apiKey 字串 |
+| **OAuth2 Bearer** | `Authorization: Bearer <token>` | SPA、Mobile、第三方 | `OAuthBearerAuthenticationMiddleware` | `client_id` = clientId |
+| **mTLS** | TLS Client Certificate | M2M、工廠設備 | `ClientCertificateAuthMiddleware` | `client_id` = cert.Subject DN |
 
 ### 4.2 取得 OAuth2 Token
 
@@ -209,6 +209,8 @@ curl -H "Authorization: Bearer eyJhbGciOi..." http://localhost/webapi/aoi/v1/aoi
 
 ## 5. 授權 (Authorization)
 
+> **Fix-2 重要變更**：`RbacAuthorizeAttribute` 現已支援全部三種認證方式。OAuth Bearer Token 及 mTLS 用戶端不再需要額外傳入 `X-Api-Key` Header 便可通過 Layer 2 授權檢查。
+
 ### 5.1 使用 PermissionAuthorize Attribute
 
 ```csharp
@@ -230,6 +232,54 @@ public class WorkOrderController : ApiBaseController
     public IHttpActionResult DeleteOrder(string id) { ... }
 }
 ```
+
+### 5.1b 使用 RbacAuthorize Attribute（外部 RBAC API）
+
+`RbacAuthorizeAttribute` 呼叫外部 RBAC 服務（`RbacApiBaseUrl`）進行權限解析，支援所有三種認證方式。
+
+```csharp
+using SKERPAPI.Core.Filters;
+using SKERPAPI.Core.Permissions;
+
+[RoutePrefix("webapi/aoi/v1/aoi01")]
+public class AoiController : ApiBaseController
+{
+    [HttpGet, Route("status")]
+    [RbacAuthorize(Permission = RbacPermissions.Aoi.StatusRead)]
+    public IHttpActionResult GetStatus() { ... }
+
+    [HttpPost, Route("inspect")]
+    [RbacAuthorize(Permission = RbacPermissions.Aoi.InspectionExecute)]
+    public IHttpActionResult Inspect([FromBody] AOIInspectionRequest request) { ... }
+}
+```
+
+#### 身份識別優先順序（Fix-2 實作後）
+
+`RbacAuthorizeAttribute` 從以下順序尋找 `clientId`：
+
+1. `ClaimsPrincipal.FindFirst("client_id")` — OWIN Layer 1 設定，支援 OAuth Bearer 及 mTLS
+2. `ClaimsPrincipal.FindFirst(ClaimTypes.Name)` — 備用 Name Claim
+3. `X-Api-Key` Header — 向後相容舊版 API Key 用戶端
+4. 三者均為空 → **401 Unauthorized**
+
+#### 三種認證方式對應的呼叫方式
+
+```bash
+# 方式 1: OAuth Bearer Token
+curl -H "Authorization: Bearer eyJhbGciOi..." \
+     http://localhost/webapi/aoi/v1/aoi01/inspect
+
+# 方式 2: mTLS 憑證
+curl --cert client.pem --key client.key \
+     https://localhost/webapi/aoi/v1/aoi01/inspect
+
+# 方式 3: API Key （舊版向後相容）
+curl -H "X-Api-Key: my-key-value" \
+     http://localhost/webapi/aoi/v1/aoi01/inspect
+```
+
+三種方式均使用同一個 `clientId` 向 RBAC 服務查詢權限，不需修改 Controller 代碼。
 
 ### 5.2 權限代碼命名規則
 
@@ -458,13 +508,14 @@ namespace SKERPAPI.AOI.Controllers.V1
 
 | 機制 | 元件 | 層級 | 說明 |
 |---|---|---|---|
-| 認證: API Key | `ApiKeyAuthMiddleware` | OWIN MW | 多金鑰支援 |
-| 認證: OAuth2 | `OAuthServerConfig` | OWIN MW | 自建 Token 端點 |
-| 認證: mTLS | `ClientCertificateAuthMiddleware` | OWIN MW | Windows CA 驗證 |
+| 認證: API Key | `ApiKeyAuthMiddleware` | OWIN MW | 多金鑰支援，設定 ClaimsPrincipal(client_id) |
+| 認證: OAuth2 | `OAuthServerConfig` | OWIN MW | 自建 Token 端點，設定 ClaimsPrincipal(client_id) |
+| 認證: mTLS | `ClientCertificateAuthMiddleware` | OWIN MW | Windows CA 驗證，設定 ClaimsPrincipal(client_id=SubjectDN) |
 | 認證閘門 | `AuthenticationRequiredMiddleware` | OWIN MW | 至少一種認證通過 |
 | CORS Layer 1 | `CorsConfig` | OWIN MW | 全域 preflight |
 | CORS Layer 2 | `[EnableCors]` | Web API | Controller/Action 精細控制 |
-| 授權 | `PermissionAuthorizeAttribute` | Web API Filter | RBAC 權限檢查 |
+| **Layer 2 授權** | **`RbacAuthorizeAttribute`** | **Web API Filter** | **優先讀 ClaimsPrincipal，回退 X-Api-Key Header，呼叫外部 RBAC API** |
+| 授權 (Plugin) | `PermissionAuthorizeAttribute` | Web API Filter | 使用 IAuthorizationProvider 提供者模式 |
 | RBAC 服務 | `CachingRbacService` + `RbacServiceClient` | Service Layer | HTTP 呼叫外部 RBAC API，内建 5 分鐘快取 |
 | 限速 | `RateLimitAttribute` | Web API Filter | 預設 100 次/分鐘 |
 | 審計日誌 | `AuditLogAttribute` | Web API Filter | API 呼叫生命週期 |

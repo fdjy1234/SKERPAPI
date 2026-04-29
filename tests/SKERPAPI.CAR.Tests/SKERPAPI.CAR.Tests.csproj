@@ -4,6 +4,7 @@
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
+    <EnableMSTestRunner>false</EnableMSTestRunner>
   </PropertyGroup>
 
   <ItemGroup>

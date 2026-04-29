@@ -1,6 +1,6 @@
 # SKERPAPI 系統架構設計文件
 
-> **版本**: 2.1.0 | **最後更新**: 2026-04-20 | **適用對象**: 系統架構師
+> **版本**: 2.2.0 | **最後更新**: 2026-04-30 | **適用對象**: 系統架構師
 
 ---
 
@@ -196,6 +196,17 @@ graph LR
   - `RbacApiBaseUrl` / `RbacApiTimeoutSeconds` 設定於 Web.config
   - 兩層透過 Autofac Named Registration (`rbacClient`) 串接
 
+### ADR-012: Layer 2 RBAC 身份識別優先順序（Fix-2）
+* **背景**: `RbacAuthorizeAttribute`（Layer 2）原本僅讀取 `X-Api-Key` Header，完全忽略 OWIN Layer 1 設定的 `ClaimsPrincipal`，導致 OAuth 2.0 Bearer Token 及 mTLS 用戶端在通過 Layer 1 認證後，仍被 Layer 2 以 401 拒絕。
+* **決策**: 修改 `RbacAuthorizeAttribute.OnActionExecutingAsync` 以 **ClaimsPrincipal 優先** 策略解析 `clientId`：
+  1. 先讀 `ClaimsPrincipal.FindFirst("client_id")` — OAuth Bearer / mTLS 的主要身份識別
+  2. Fallback `ClaimsPrincipal.FindFirst(ClaimTypes.Name)` — 備用 Name Claim
+  3. 再 Fallback `X-Api-Key` Header — 向後相容舊版 API Key 用戶端
+  4. 三者均為空 → 401 Unauthorized
+* **影響**: `RbacServiceClient.ResolveAsync(clientId, ...)` 的參數語意從「API Key 字串」擴展為「客戶端識別碼」（可以是 clientId、cert Subject DN、或 API Key）。RBAC 後端需能以相同查詢介面處理三種身份形式。
+* **取捨**: mTLS 用戶端的 `clientId` 為憑證完整 Subject DN（例如 `CN=Robot01,O=Corp`），RBAC 後端需對此格式進行正規化或白名單比對（見 Gap M-5）。
+* **TDD 驗證**: 測試案例 Test 6（OAuth）與 Test 7（mTLS）在實作前為 RED，實作後為 GREEN；Test 8 為迴歸測試確保匿名請求仍返回 401。
+
 ### ADR-009: OAuth2 過渡策略
 * **決策**: 當前階段使用 `OAuthAuthorizationServerMiddleware` 自建 Token 端點 (`/api/token`)。
   - 支援 `client_credentials` 和 `password` grant type
@@ -214,27 +225,31 @@ graph LR
 
 ### 4.1 OWIN 認證管線
 
+> **Fix-2 更新**：RbacAuthorizeAttribute（Layer 2）現已優先讀取 OWIN Layer 1 設定的 `ClaimsPrincipal`，再向後相容地回退至 `X-Api-Key` Header。
+
 ```mermaid
 sequenceDiagram
     participant C as Client
     participant IIS as IIS (HTTPS)
     participant CORS as CORS MW
-    participant mTLS as mTLS MW
-    participant OAuth as OAuth Server + Bearer MW
-    participant AK as API Key MW
+    participant mTLS as mTLS MW (Layer 1)
+    participant OAuth as OAuth Server + Bearer MW (Layer 1)
+    participant AK as API Key MW (Layer 1)
     participant Gate as Auth Required Gate
-    participant AuthZ as PermissionAuthorize
+    participant RbacFilter as RbacAuthorizeAttribute (Layer 2)
     participant Ctrl as Controller
 
     C->>IIS: HTTPS Request
     IIS->>CORS: CORS Preflight / Headers
-    CORS->>mTLS: Extract Client Cert
-    mTLS->>OAuth: Validate Bearer / Issue Token
-    OAuth->>AK: Validate X-Api-Key
-    Note over mTLS,AK: 被動式認證：至少一種通過即可
-    AK->>Gate: Check IsAuthenticated
-    Gate->>AuthZ: Check Permission Claims
-    AuthZ->>Ctrl: Execute Action
+    CORS->>mTLS: Extract Client Cert → set ClaimsPrincipal(client_id=SubjectDN)
+    mTLS->>OAuth: Validate Bearer → set ClaimsPrincipal(client_id=clientId)
+    OAuth->>AK: Validate X-Api-Key → set ClaimsPrincipal(client_id=key)
+    Note over mTLS,AK: Layer 1 被動式認證：三種方式至少一種設定 ClaimsPrincipal
+    AK->>Gate: IsAuthenticated?
+    Gate->>RbacFilter: ClaimsPrincipal 已設定
+    Note over RbacFilter: Fix-2: 優先讀 ClaimsPrincipal.client_id<br/>→ Fallback ClaimTypes.Name<br/>→ Fallback X-Api-Key Header<br/>→ 均無 = 401
+    RbacFilter->>RbacFilter: IRbacService.ResolveAsync(clientId)
+    RbacFilter->>Ctrl: HasPermission? → 允許 or 403
     Ctrl-->>C: ApiResponse
 ```
 
@@ -248,44 +263,46 @@ sequenceDiagram
 
 ### 4.3 授權架構 (RBAC)
 
+> **Fix-2 更新**：`RbacAuthorizeAttribute` 身份識別優先順序已更新，現在支援三種 Layer 1 認證方式。
+
 ```mermaid
 graph TB
-    subgraph "SKERPAPI.Core (抽象層)"
-        IAuthZ["IAuthorizationProvider"]
-        AuthZAttr["PermissionAuthorizeAttribute"]
+    subgraph "Layer 1: OWIN 認證（身份識別）"
+        mTLS_MW["ClientCertificateAuthMiddleware<br/>client_id = cert.Subject"]
+        OAuth_MW["OAuthBearerMiddleware<br/>client_id = token.clientId"]
+        ApiKey_MW["ApiKeyAuthMiddleware<br/>client_id = apiKey"]
     end
 
-    subgraph "Provider 實作 (可切換)"
-        ConfigProv["ConfigBasedAuthProvider<br/>(開發期)"]
-        DbProv["DbRbacAuthProvider<br/>(正式環境)"]
-        ADProv["ADAuthProvider<br/>(未來)"]
+    subgraph "Layer 2: RBAC 授權（Fix-2 後）"
+        RbacAttr["RbacAuthorizeAttribute<br/>1. ClaimsPrincipal.client_id<br/>2. ClaimsPrincipal.Name<br/>3. X-Api-Key Header"]
+        RbacSvc["IRbacService<br/>ResolveAsync(clientId)"]
+        Cache["CachingRbacService<br/>(TTL: 5 min)"]
+        Client["RbacServiceClient<br/>GET /api/rbac/keys/{clientId}"]
     end
 
-    subgraph "DB Schema (DbRbac)"
-        Users["Users"]
-        Roles["Roles"]
-        Perms["Permissions"]
-        UR["UserRoles"]
-        RP["RolePermissions"]
-    end
+    mTLS_MW -->|"ClaimsPrincipal"| RbacAttr
+    OAuth_MW -->|"ClaimsPrincipal"| RbacAttr
+    ApiKey_MW -->|"ClaimsPrincipal"| RbacAttr
+    RbacAttr --> RbacSvc
+    RbacSvc --> Cache
+    Cache --> Client
 
-    AuthZAttr --> IAuthZ
-    ConfigProv -.-> IAuthZ
-    DbProv -.-> IAuthZ
-    ADProv -.-> IAuthZ
-    DbProv --> Users
-    DbProv --> Roles
-    DbProv --> Perms
-    Users --> UR
-    Roles --> UR
-    Roles --> RP
-    Perms --> RP
-
-    style IAuthZ fill:#e94560,color:#fff
-    style DbProv fill:#0f3460,color:#fff
-    style ConfigProv fill:#53a8b6,color:#fff,stroke-dasharray: 5 5
-    style ADProv fill:#53a8b6,color:#fff,stroke-dasharray: 5 5
+    style RbacAttr fill:#e94560,color:#fff
+    style RbacSvc fill:#0f3460,color:#fff
+    style Cache fill:#53a8b6,color:#fff
+    style mTLS_MW fill:#16213e,color:#fff
+    style OAuth_MW fill:#16213e,color:#fff
+    style ApiKey_MW fill:#16213e,color:#fff
 ```
+
+#### clientId 解析優先順序（Fix-2 實作後）
+
+| 優先順序 | 來源 | 適用認證方式 | Claim 類型 |
+|---|---|---|---|
+| 1 | `ClaimsPrincipal.FindFirst("client_id")` | OAuth Bearer、mTLS、API Key | `SecurityConstants.ClientIdClaimType` |
+| 2 | `ClaimsPrincipal.FindFirst(ClaimTypes.Name)` | 備用 Name Claim | `System.Security.Claims.ClaimTypes.Name` |
+| 3 | `X-Api-Key` Header | 舊版 API Key 向後相容 | HTTP Header |
+| 4 | 均無 | — | → **401 Unauthorized** |
 
 #### 權限代碼命名慣例
 ```
